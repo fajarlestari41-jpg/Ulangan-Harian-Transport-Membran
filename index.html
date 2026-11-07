@@ -1,0 +1,498 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Ulangan Transpor Membran</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: satu kolom sempit seperti lembar ujian. Empat layar: identitas, soal, nilai, pembahasan.
+   Motif: lapisan ganda fosfolipid sebagai penanda halaman. */
+:root{
+  --bg:#f2f7f6; --surface:#ffffff; --ink:#10282a; --muted:#52696b; --line:#d2e0de;
+  --accent:#0e7a73; --accent-ink:#ffffff; --accent-soft:#e0f2ef;
+  --ok:#1b7a3a; --ok-soft:#e1f3e7; --bad:#b0302a; --bad-soft:#fbe7e4; --warn:#8f5b00; --warn-soft:#fbf0d8;
+  --display:'Bricolage Grotesque','Trebuchet MS',system-ui,sans-serif;
+  --body:'Public Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1819; --surface:#13262a; --ink:#e6f1ef; --muted:#9bb3b1; --line:#27403f;
+    --accent:#4cc3b8; --accent-ink:#06201e; --accent-soft:#16373a;
+    --ok:#74d493; --ok-soft:#173a25; --bad:#ff9288; --bad-soft:#41211f; --warn:#f0c15c; --warn-soft:#3b2f12;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1819; --surface:#13262a; --ink:#e6f1ef; --muted:#9bb3b1; --line:#27403f;
+  --accent:#4cc3b8; --accent-ink:#06201e; --accent-soft:#16373a;
+  --ok:#74d493; --ok-soft:#173a25; --bad:#ff9288; --bad-soft:#41211f; --warn:#f0c15c; --warn-soft:#3b2f12;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:20px 56px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.wrap{max-width:720px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:clamp(28px,6vw,38px);font-weight:700;letter-spacing:-.01em}
+h2{font-size:22px;font-weight:700}
+h3{font-size:17px;font-weight:700}
+p{margin:0}
+.muted{color:var(--muted)}
+.eyebrow{font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;color:var(--accent)}
+.band{display:block;width:100%;height:56px;border-radius:10px 10px 0 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.pad{padding:22px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+button,.btn{font:inherit;font-weight:600;border-radius:8px;padding:12px 20px;border:1px solid var(--accent);cursor:pointer;min-height:44px}
+.primary{background:var(--accent);color:var(--accent-ink)}
+.ghost{background:transparent;color:var(--accent)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+label.field{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:14px}
+input[type=text]{font:inherit;font-weight:400;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);min-height:46px;width:100%}
+.err{color:var(--bad);font-size:14px;min-height:20px}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.parts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.parts div{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
+.parts b{display:block;font-family:var(--display);font-size:15px}
+@media(max-width:520px){.parts{grid-template-columns:1fr}}
+
+/* soal */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding:10px 0 12px;display:flex;flex-direction:column;gap:6px}
+.bar .meta{display:flex;justify-content:space-between;gap:12px;font-size:14px;font-weight:600}
+.bar .meta span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.fill{height:100%;background:var(--accent);width:0;transition:width .25s}
+.sec{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.q{padding:20px;display:flex;flex-direction:column;gap:14px}
+.qhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.num{font-family:var(--display);font-weight:700;font-size:15px;background:var(--accent);color:var(--accent-ink);min-width:34px;height:34px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;padding:0 8px}
+.chip{font-size:12px;font-weight:600;border:1px solid var(--line);border-radius:99px;padding:2px 10px;color:var(--muted)}
+.stem p+p{margin-top:8px}
+.ask{font-weight:600}
+.hint{font-size:13px;color:var(--muted)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;font-size:14px;width:100%;min-width:0}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft)}
+td.c,th.c{text-align:center;width:72px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;background:var(--surface)}
+.opt .ltr{font-family:var(--display);font-weight:700;width:26px;height:26px;border-radius:6px;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;flex:none;font-size:14px}
+.opt input{margin:5px 0 0;accent-color:var(--accent);width:18px;height:18px;flex:none}
+.opt .tx{flex:1;min-width:0}
+.opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.opt.static{cursor:default}
+.opt.correct{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.tag{font-size:12px;font-weight:700;border-radius:99px;padding:1px 9px;white-space:nowrap;align-self:flex-start}
+.tag.ok{background:var(--ok);color:var(--surface)}
+.tag.bad{background:var(--bad);color:var(--surface)}
+.tag.you{border:1px solid currentColor;color:var(--muted)}
+.cs td{vertical-align:middle}
+.cs input{width:20px;height:20px;accent-color:var(--accent)}
+.cs td.c{text-align:center}
+.pill{font-size:13px;font-weight:700;border-radius:99px;padding:3px 12px}
+.pill.full{background:var(--ok-soft);color:var(--ok)}
+.pill.part{background:var(--warn-soft);color:var(--warn)}
+.pill.none{background:var(--bad-soft);color:var(--bad)}
+.expl{background:var(--accent-soft);border-radius:8px;padding:12px 14px;font-size:15px}
+.expl b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.expl ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.warnbox{background:var(--warn-soft);color:var(--ink);border:1px solid var(--warn);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+
+/* nilai */
+.score{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.big{font-family:var(--display);font-weight:700;font-size:clamp(64px,16vw,96px);line-height:1;letter-spacing:-.03em}
+.who{font-size:15px}
+.grade{display:inline-block;font-weight:700;border-radius:99px;padding:4px 14px;font-size:14px}
+.bars{display:flex;flex-direction:column;gap:12px}
+.br{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;font-size:14px}
+.br .track{grid-column:1/-1}
+.br span:last-child{font-variant-numeric:tabular-nums;font-weight:600}
+.fb ul{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.sumgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sumgrid div{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
+.sumgrid b{display:block;font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
+@media(max-width:520px){.sumgrid{grid-template-columns:1fr}}
+.toast{font-size:14px;color:var(--ok);min-height:20px}
+@media (prefers-reduced-motion: reduce){.fill{transition:none}}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+"use strict";
+var KKM = 75; // batas ketuntasan, ubah sesuai kebijakan sekolah
+var L = "ABCDE";
+var TOPIK_TIP = {
+  "Struktur membran":"Ulangi model mosaik cair: kepala fosfolipid hidrofilik, ekor hidrofobik, serta fungsi kolesterol, protein integral, dan glikoprotein.",
+  "Difusi":"Bedakan difusi sederhana dan difusi terfasilitasi: zat apa yang memerlukan protein, dan mengapa grafik laju transpor menjadi jenuh.",
+  "Osmosis dan larutan":"Latih membandingkan konsentrasi di luar dan di dalam sel, lalu tentukan arah perpindahan air pada larutan hipotonik, isotonik, dan hipertonik.",
+  "Transpor aktif":"Ingat bahwa transpor aktif melawan gradien dan memakai energi. Pada transpor aktif sekunder, gradien yang dipakai dibuat oleh pompa seperti Na⁺/K⁺.",
+  "Endositosis dan eksositosis":"Pelajari jenis endositosis (fagositosis, pinositosis, diperantarai reseptor), contoh eksositosis, dan kebutuhan energinya."
+};
+
+var Q = [
+{n:1,t:"pg",topik:"Struktur membran",lv:"Penalaran",
+ stem:"<p>Pada suatu percobaan, sel manusia dan sel tikus digabungkan menjadi satu sel hibrida. Protein membran sel manusia ditandai pendar merah dan protein membran sel tikus ditandai pendar hijau. Awalnya kedua warna terpisah pada dua belahan sel. Setelah 40 menit pada suhu 37°C, kedua warna tersebar bercampur merata di seluruh permukaan membran.</p>",
+ ask:"Kesimpulan yang paling tepat mengenai struktur membran sel berdasarkan percobaan tersebut adalah ....",
+ opts:["protein membran tertanam permanen sehingga hanya molekul lipid yang dapat berpindah tempat","protein membran dapat bergerak lateral karena lapisan fosfolipid bersifat semicair","protein membran berputar menembus kedua lapisan lipid sehingga warna tersebar merata","penyebaran warna terjadi karena sel hibrida membentuk membran baru dari sitoplasma","protein membran sel manusia dan sel tikus bereaksi dan membentuk senyawa baru"],
+ key:1,ex:"Warna bercampur karena protein bergerak lateral dalam lapisan fosfolipid yang semicair. Ini mendukung model mosaik cair."},
+{n:2,t:"pg",topik:"Difusi",lv:"Penerapan",
+ stem:"<p>Beberapa petambak melaporkan ikan nila megap-megap di permukaan kolam pada siang hari yang sangat panas ketika aerator mati. Pengukuran menunjukkan kadar oksigen terlarut dalam air turun dari 6 mg/L menjadi 2 mg/L.</p>",
+ ask:"Berdasarkan prinsip transpor membran, penjelasan yang tepat mengapa ikan kesulitan memperoleh oksigen adalah ....",
+ opts:["gradien konsentrasi O₂ antara air dan darah menurun sehingga laju difusi melalui membran insang melambat","protein pembawa O₂ pada membran insang kehabisan ATP sehingga pompa O₂ berhenti bekerja","suhu tinggi membuat molekul O₂ bermuatan negatif sehingga tidak dapat melewati fosfolipid","membran insang menjadi tidak permeabel terhadap semua molekul akibat suhu air yang tinggi","air kolam menjadi hipertonik sehingga O₂ tertarik keluar dari sel insang secara osmosis"],
+ key:0,ex:"O₂ berdifusi menurut gradien konsentrasi. Kadar O₂ air turun sehingga gradien menurun dan laju difusi melambat. O₂ tidak dipompa dan osmosis hanya untuk air."},
+{n:3,t:"pg",topik:"Osmosis dan larutan",lv:"Penerapan",
+ stem:"<p>Seorang pedagang sayur merendam selada yang layu dalam air bersih selama 30 menit. Setelah itu daun selada tampak segar dan kaku kembali.</p>",
+ ask:"Peristiwa pada sel selada yang menyebabkan daun kembali segar adalah ....",
+ opts:["air keluar dari vakuola ke larutan rendaman karena potensial air dalam sel lebih tinggi","air masuk ke sel secara transpor aktif sehingga konsentrasi larutan sel menjadi lebih rendah","air masuk ke sel secara osmosis sehingga vakuola membesar dan tekanan turgor meningkat","zat terlarut keluar dari sel secara difusi sehingga dinding sel mengembang dan menjadi kaku","air bergerak ke dalam sel sampai terjadi plasmolisis yang membuat daun kaku kembali"],
+ key:2,ex:"Sel selada hipertonik terhadap air rendaman, sehingga air masuk secara osmosis, vakuola membesar, dan tekanan turgor naik. Plasmolisis justru terjadi saat air keluar dari sel."},
+{n:4,t:"pg",topik:"Transpor aktif",lv:"Penalaran",
+ stem:"<p>Pompa Na⁺/K⁺ pada membran neuron memindahkan 3 ion Na⁺ keluar sel dan 2 ion K⁺ masuk sel untuk setiap 1 molekul ATP yang digunakan. Konsentrasi kedua ion pada neuron normal disajikan pada tabel berikut.</p>",
+ tbl:{head:["Ion","Di luar sel (mmol/L)","Di dalam sel (mmol/L)"],rows:[["Na⁺","145","12"],["K⁺","4","140"]]},
+ stem2:"<p>Sianida menghambat respirasi seluler sehingga ATP neuron menurun drastis.</p>",
+ ask:"Dampak yang akan terjadi pada neuron tersebut adalah ....",
+ opts:["Na⁺ keluar dan K⁺ masuk melalui difusi terfasilitasi hingga konsentrasi kedua ion di dalam dan di luar sel sama","pompa berubah menjadi kanal pasif sehingga gradien Na⁺ dan K⁺ tetap terjaga di kedua sisi membran","Na⁺ dan K⁺ sama-sama bergerak masuk ke dalam sel mengikuti gradien konsentrasi Na⁺ di luar sel","Na⁺ perlahan masuk dan K⁺ perlahan keluar mengikuti gradien konsentrasi sehingga selisih konsentrasi ion menurun","tidak terjadi perubahan konsentrasi ion karena tidak ada ion yang mampu melintasi membran tanpa pompa"],
+ key:3,ex:"Tanpa ATP pompa berhenti. Ion bergerak mengikuti gradien: Na⁺ (tinggi di luar) masuk dan K⁺ (tinggi di dalam) keluar, sehingga selisih konsentrasi menurun."},
+{n:5,t:"pg",topik:"Osmosis dan larutan",lv:"Penalaran",
+ stem:"<p>Sekelompok murid merendam potongan kentang berukuran sama (massa awal 5,0 g) dalam larutan sukrosa dengan konsentrasi berbeda selama 60 menit pada suhu ruang. Data massa akhir potongan kentang disajikan pada tabel berikut.</p>",
+ tbl:{head:["Konsentrasi sukrosa (M)","Massa awal (g)","Massa akhir (g)","Perubahan massa (%)"],rows:[["0,0","5,0","5,6","+12"],["0,2","5,0","5,2","+4"],["0,4","5,0","4,8","−4"],["0,6","5,0","4,5","−10"],["0,8","5,0","4,3","−14"]]},
+ ask:"Berdasarkan data tersebut, konsentrasi sukrosa yang diperkirakan isotonik terhadap sel kentang dan alasannya adalah ....",
+ opts:["0,2 M, karena pada konsentrasi ini massa kentang bertambah paling sedikit","0,3 M, karena air yang masuk dan keluar sel kentang diperkirakan seimbang sehingga massa tetap","0,4 M, karena pada konsentrasi ini massa kentang mulai berkurang dibandingkan massa awal","0,6 M, karena massa akhir kentang berada di tengah-tengah antara 0,0 M dan 0,8 M","0,0 M, karena tidak ada zat terlarut yang dapat memengaruhi perpindahan air ke sel kentang"],
+ key:1,ex:"Perubahan massa 0% terletak di antara 0,2 M (+4%) dan 0,4 M (−4%), yaitu sekitar 0,3 M. Pada titik ini air yang masuk dan keluar seimbang."},
+{n:6,t:"pg",topik:"Osmosis dan larutan",lv:"Pemahaman",
+ stem:"<p>Seorang laboran mengamati sel darah merah manusia di bawah mikroskop setelah direndam 10 menit dalam tiga larutan NaCl. Hasil pengamatan disajikan pada tabel berikut.</p>",
+ tbl:{head:["Larutan","Kadar NaCl","Hasil pengamatan sel darah merah"],rows:[["P","0,9%","Bentuk cakram bikonkaf, tidak berubah"],["Q","0,2%","Membengkak dan sebagian pecah"],["R","3,0%","Mengerut dan permukaan bergerigi"]]},
+ ask:"Sifat larutan P, Q, dan R terhadap cairan di dalam sel darah merah secara berurutan adalah ....",
+ opts:["hipotonik, isotonik, hipertonik","hipertonik, hipotonik, isotonik","isotonik, hipertonik, hipotonik","hipotonik, hipertonik, isotonik","isotonik, hipotonik, hipertonik"],
+ key:4,ex:"P tidak mengubah sel (isotonik). Q membuat sel membengkak karena air masuk (hipotonik). R membuat sel mengerut karena air keluar (hipertonik)."},
+{n:7,t:"pg",topik:"Transpor aktif",lv:"Penerapan",
+ stem:"<p>Seorang anak mengalami diare cair dan dehidrasi ringan. Petugas puskesmas memberikan oralit (larutan garam rehidrasi oral) yang mengandung glukosa dan natrium klorida, bukan air putih saja.</p>",
+ ask:"Penjelasan yang tepat mengapa oralit efektif membantu penyerapan air di usus halus adalah ....",
+ opts:["glukosa menarik air langsung melewati lapisan fosfolipid sel usus tanpa melibatkan protein membran","natrium masuk ke sel usus melalui endositosis bersama glukosa sehingga air ikut terbawa dalam vesikel","glukosa dan Na⁺ diangkut bersama oleh protein kotransporter ke dalam sel usus sehingga air mengikuti secara osmosis","glukosa memicu pompa Na⁺/K⁺ memasukkan Na⁺ ke dalam sel usus sehingga air terserap secara aktif","natrium klorida membuat isi usus menjadi hipotonik sehingga air berdifusi cepat ke dalam sel epitel usus"],
+ key:2,ex:"Glukosa dan Na⁺ diangkut bersama oleh kotransporter (SGLT1) ke sel usus, lalu air mengikuti secara osmosis. Pompa Na⁺/K⁺ justru mengeluarkan Na⁺ dari sel."},
+{n:8,t:"pg",topik:"Osmosis dan larutan",lv:"Penalaran",
+ stem:"<p>Pada penderita kolera, toksin bakteri <i>Vibrio cholerae</i> meningkatkan kadar cAMP dalam sel epitel usus halus sehingga kanal ion klorida (CFTR) terbuka terus-menerus. Penderita mengeluarkan tinja cair dalam jumlah sangat banyak dan cepat mengalami dehidrasi.</p>",
+ ask:"Mekanisme hilangnya air dari tubuh penderita adalah ....",
+ opts:["ion Cl⁻ dan Na⁺ keluar ke lumen usus sehingga lumen menjadi hipertonik dan air keluar dari sel secara osmosis","ion Cl⁻ terjebak di dalam sel sehingga sel epitel menjadi hipertonik dan air dipompa keluar menuju lumen usus","toksin memompa air keluar dari sel epitel usus menggunakan ATP sehingga lumen usus menjadi hipotonik","kanal klorida yang terbuka menarik air masuk ke sel epitel yang kemudian dibuang melalui eksositosis","kenaikan cAMP menutup akuaporin pada sel epitel sehingga air tertahan di dalam lumen usus"],
+ key:0,ex:"Cl⁻ keluar ke lumen diikuti Na⁺. Lumen menjadi hipertonik sehingga air keluar dari sel secara osmosis dan terbentuk diare cair."},
+{n:9,t:"pg",topik:"Endositosis dan eksositosis",lv:"Pemahaman",
+ stem:"<p>Perhatikan tiga peristiwa transpor berikut.</p><p>(1) Neutrofil menelan bakteri <i>Staphylococcus aureus</i> di jaringan luka.</p><p>(2) Sel beta pankreas melepaskan insulin ke dalam darah setelah makan.</p><p>(3) Sel hati mengikat partikel LDL pada reseptor, lalu membawanya masuk dalam vesikel berselaput.</p>",
+ ask:"Jenis transpor pada peristiwa (1), (2), dan (3) secara berurutan adalah ....",
+ opts:["pinositosis, eksositosis, fagositosis","fagositosis, endositosis, eksositosis","eksositosis, fagositosis, pinositosis","fagositosis, eksositosis, endositosis diperantarai reseptor","endositosis diperantarai reseptor, pinositosis, eksositosis"],
+ key:3,ex:"Neutrofil menelan bakteri (fagositosis). Sel beta melepas insulin keluar sel (eksositosis). Sel hati mengambil LDL lewat reseptor (endositosis diperantarai reseptor)."},
+{n:10,t:"pg",topik:"Osmosis dan larutan",lv:"Penerapan",
+ stem:"<p>Masyarakat pesisir mengawetkan ikan dengan penggaraman (ikan asin), dan di banyak daerah buah diawetkan menjadi manisan dengan gula pekat. Kedua produk tersebut dapat disimpan lebih lama karena bakteri pembusuk sulit tumbuh di dalamnya.</p>",
+ ask:"Alasan bakteri pembusuk sulit tumbuh pada ikan asin dan manisan adalah ....",
+ opts:["garam dan gula merusak membran sel bakteri sehingga isi sel keluar melalui eksositosis","lingkungan yang hipotonik membuat air masuk ke sel bakteri hingga sel pecah dan mati","garam dan gula masuk ke sel bakteri secara difusi sehingga enzim bakteri bekerja berlebihan","pompa membran bakteri memindahkan garam dan gula keluar sehingga sel kehabisan energi","lingkungan yang hipertonik menarik air keluar dari sel bakteri sehingga sel mengerut dan metabolismenya terhambat"],
+ key:4,ex:"Garam dan gula pekat membuat lingkungan hipertonik sehingga air keluar dari sel bakteri. Sel mengerut dan metabolismenya terhambat."},
+
+{n:11,t:"pgk",topik:"Struktur membran",lv:"Pemahaman",
+ stem:"<p>Seorang murid membuat model membran sel hewan dari plastisin berdasarkan model mosaik cair. Ia menyusun lapisan ganda fosfolipid, menyisipkan molekul kolesterol, protein yang menembus lapisan lipid, dan rantai karbohidrat di permukaan luar.</p>",
+ ask:"Pernyataan yang benar tentang komponen membran sel pada model tersebut adalah ....",
+ opts:["Kolesterol yang terselip di antara fosfolipid membantu menjaga kefluidaan membran pada suhu yang berbeda.","Kepala fosfolipid bersifat hidrofobik sehingga menghadap ke bagian dalam lapisan ganda.","Protein integral menembus lapisan fosfolipid dan dapat berfungsi sebagai kanal atau pembawa.","Ekor asam lemak fosfolipid bersifat hidrofilik sehingga berinteraksi langsung dengan air.","Glikoprotein pada permukaan luar membran berperan dalam pengenalan antarsel."],
+ key:[0,2,4],ex:"Kepala fosfolipid bersifat hidrofilik (menghadap air di luar dan dalam sel), sedangkan ekor asam lemak bersifat hidrofobik dan berada di bagian dalam bilayer. Karena itu B dan D salah."},
+{n:12,t:"pgk",topik:"Difusi",lv:"Pemahaman",
+ stem:"<p>Tabel berikut menunjukkan sifat empat zat yang keluar-masuk sel otot rangka saat seseorang berolahraga.</p>",
+ tbl:{head:["Zat","Ukuran dan sifat","Konsentrasi di luar dibanding di dalam sel"],rows:[["Oksigen","Kecil, nonpolar","Lebih tinggi di luar"],["Karbon dioksida","Kecil, nonpolar","Lebih tinggi di dalam"],["Ion Na⁺","Kecil, bermuatan","Lebih tinggi di luar"],["Glukosa","Besar, polar","Lebih tinggi di luar"]]},
+ ask:"Berdasarkan tabel, pernyataan yang benar tentang cara zat-zat tersebut melintasi membran sel adalah ....",
+ opts:["Ion Na⁺ masuk ke sel melalui difusi sederhana karena ukurannya sangat kecil.","Oksigen masuk ke sel melalui difusi sederhana langsung di antara molekul fosfolipid.","Karbon dioksida keluar dari sel melalui protein pembawa spesifik karena gradiennya ke arah luar.","Difusi terfasilitasi memerlukan ATP karena melibatkan protein pembawa pada membran.","Glukosa masuk ke sel melalui difusi terfasilitasi dengan bantuan protein pembawa."],
+ key:[1,4],ex:"Zat kecil nonpolar (O₂, CO₂) berdifusi sederhana. Zat bermuatan (Na⁺) memerlukan kanal dan zat besar polar (glukosa) memerlukan pembawa. Difusi terfasilitasi tetap pasif sehingga tidak memerlukan ATP."},
+{n:13,t:"pgk",topik:"Difusi",lv:"Penalaran",
+ stem:"<p>Seorang peneliti mengukur laju masuknya dua zat, X dan Y, ke dalam sel darah merah pada berbagai konsentrasi di luar sel. Suhu, jumlah sel, dan waktu pengukuran dibuat sama. Hasilnya disajikan pada tabel berikut.</p>",
+ tbl:{head:["Konsentrasi di luar sel (mM)","Laju masuk zat X (satuan relatif)","Laju masuk zat Y (satuan relatif)"],rows:[["5","10","20"],["10","20","32"],["20","40","44"],["30","60","49"],["40","80","50"]]},
+ ask:"Berdasarkan data tersebut, pernyataan yang benar adalah ....",
+ opts:["Zat X masuk melalui difusi sederhana karena lajunya meningkat sebanding dengan konsentrasi.","Menaikkan konsentrasi zat Y dari 40 mM menjadi 80 mM akan melipatgandakan laju masuknya.","Zat X memerlukan ATP agar dapat melintasi membran karena lajunya terus meningkat.","Zat Y melintasi membran melalui difusi sederhana karena bergerak mengikuti gradien konsentrasi.","Zat Y masuk dengan bantuan protein pembawa yang jumlahnya terbatas sehingga lajunya mencapai titik jenuh."],
+ key:[0,4],ex:"Laju X naik linear (difusi sederhana). Laju Y menjenuh di sekitar 50 karena jumlah protein pembawa terbatas (difusi terfasilitasi), sehingga menaikkan konsentrasi Y tidak menggandakan laju."},
+{n:14,t:"pgk",topik:"Transpor aktif",lv:"Penalaran",
+ stem:"<p>Pada ginjal sehat, glukosa yang tersaring di glomerulus hampir seluruhnya diserap kembali di tubulus proksimal oleh protein SGLT2 (<i>sodium-glucose cotransporter 2</i>), yang memindahkan Na⁺ dan glukosa bersamaan ke dalam sel tubulus. Gradien Na⁺ dijaga oleh pompa Na⁺/K⁺ ATPase pada sisi lain sel. Obat golongan penghambat SGLT2, seperti dapagliflozin, digunakan pada pasien diabetes melitus tipe 2.</p>",
+ ask:"Pernyataan yang benar terkait kerja SGLT2 dan obat penghambatnya adalah ....",
+ opts:["Pompa Na⁺/K⁺ ATPase pada sel tubulus tidak diperlukan karena SGLT2 bekerja tanpa energi apa pun.","Penyerapan glukosa oleh SGLT2 termasuk transpor aktif sekunder karena memanfaatkan gradien Na⁺.","Penghambatan SGLT2 meningkatkan pembuangan glukosa lewat urin sehingga kadar glukosa darah menurun.","Glukosa yang tidak terserap menahan air di lumen tubulus sehingga volume urin cenderung meningkat.","Glukosa dari lumen tubulus masuk ke sel tubulus melalui difusi sederhana melewati lapisan fosfolipid."],
+ key:[1,2,3],ex:"SGLT2 memakai gradien Na⁺ yang dijaga pompa Na⁺/K⁺ (transpor aktif sekunder). Bila SGLT2 dihambat, glukosa terbuang lewat urin, glukosa darah turun, dan glukosa dalam lumen menahan air secara osmosis. Glukosa bersifat polar sehingga tidak berdifusi sederhana."},
+{n:15,t:"pgk",topik:"Endositosis dan eksositosis",lv:"Penerapan",
+ stem:"<p>Vaksin mRNA terdiri atas molekul mRNA yang dibungkus nanopartikel lipid (<i>lipid nanoparticle</i>, LNP). Setelah disuntikkan ke otot, LNP diambil oleh sel, mRNA dilepaskan ke sitosol, dan ribosom menerjemahkan mRNA menjadi protein antigen yang memicu respons imun.</p>",
+ ask:"Pernyataan yang benar tentang masuknya LNP dan kerja mRNA di dalam sel adalah ....",
+ opts:["Masuknya LNP tergolong transpor pasif karena tidak melawan gradien konsentrasi.","mRNA diterjemahkan menjadi protein di dalam nukleus, bukan di sitosol.","LNP masuk melalui endositosis sehingga terbungkus vesikel yang berasal dari membran plasma.","mRNA tanpa pembungkus lipid dapat melintasi lapisan fosfolipid secara difusi sederhana karena nonpolar.","Endositosis memerlukan energi sehingga ATP sel dibutuhkan dalam masuknya LNP."],
+ key:[2,4],ex:"LNP masuk lewat endositosis yang memerlukan ATP, bukan transpor pasif. mRNA berukuran besar dan bermuatan sehingga tidak berdifusi bebas, dan translasi terjadi di ribosom pada sitosol."},
+
+{n:16,t:"bs",topik:"Osmosis dan larutan",lv:"Penerapan",
+ stem:"<p>Seorang petani cabai memberi pupuk NPK dengan dosis dua kali lipat dari anjuran. Dua hari kemudian daun tanaman layu meskipun tanah masih lembap. Hasil pengukuran menunjukkan konsentrasi larutan tanah di sekitar akar naik dari 0,05 M menjadi 0,30 M, sedangkan konsentrasi cairan sel akar sekitar 0,20 M.</p>",
+ ask:"Tentukan Benar atau Salah pada pernyataan berikut!",
+ st:["Tanaman layu karena ion-ion pupuk berpindah keluar dari sel akar secara osmosis.","Larutan tanah bersifat hipertonik terhadap sel akar sehingga air bergerak keluar dari sel akar.","Membilas tanah dengan air dapat menurunkan konsentrasi larutan tanah sehingga air kembali mengalir ke dalam sel akar."],
+ key:[false,true,true],
+ why:["Yang berosmosis adalah air, bukan ion pupuk. Layu terjadi karena air keluar dari sel akar.","Larutan tanah 0,30 M lebih pekat daripada cairan sel akar 0,20 M, jadi hipertonik dan air keluar dari sel.","Pembilasan menurunkan konsentrasi larutan tanah sehingga air dapat kembali masuk ke sel akar."]},
+{n:17,t:"bs",topik:"Osmosis dan larutan",lv:"Penalaran",
+ stem:"<p>Setelah kapal karam, seorang penumpang terombang-ambing di laut selama beberapa hari. Karena sangat haus, ia meminum air laut (kadar garam sekitar 3,5%, sedangkan cairan tubuh manusia sekitar 0,9%). Ia justru mengalami dehidrasi berat.</p>",
+ ask:"Tentukan Benar atau Salah pada pernyataan berikut!",
+ st:["Air laut bersifat hipertonik terhadap cairan tubuh sehingga air cenderung bergerak keluar dari sel-sel tubuh.","Ginjal manusia tidak mampu menghasilkan urin sepekat air laut sehingga pembuangan garam menyebabkan tubuh kehilangan lebih banyak air daripada yang diminum.","Air laut tetap dapat menghidrasi sel tubuh karena membran sel permeabel bebas terhadap Na⁺ dan Cl⁻."],
+ key:[true,true,false],
+ why:["Air laut (sekitar 3,5%) lebih pekat daripada cairan tubuh (sekitar 0,9%), jadi hipertonik dan menarik air keluar dari sel.","Ginjal tidak dapat membuat urin lebih asin daripada air laut, sehingga untuk membuang garamnya tubuh memakai lebih banyak air daripada yang diminum (<a href=\"https://oceanservice.noaa.gov/facts/drinksw.html\" target=\"_blank\" rel=\"noopener\">NOAA</a>).","Na⁺ dan Cl⁻ bermuatan sehingga tidak bebas melintasi bilayer. Air laut justru menarik air dari sel."]},
+{n:18,t:"bs",topik:"Osmosis dan larutan",lv:"Penalaran",
+ stem:"<p>Seorang murid mengamati sel epidermis bawang merah di bawah mikroskop setelah direndam selama 10 menit dalam larutan sukrosa dengan konsentrasi berbeda. Pada setiap larutan, ia menghitung 50 sel. Ia menggunakan bawang merah dari umbi yang sama dan percobaan dilakukan pada suhu ruang. Hasilnya disajikan pada tabel berikut.</p>",
+ tbl:{head:["Konsentrasi sukrosa (M)","Jumlah sel yang mengalami plasmolisis (dari 50 sel)"],rows:[["0,1","0"],["0,2","5"],["0,3","20"],["0,4","40"],["0,5","50"]]},
+ ask:"Tentukan Benar atau Salah pada pernyataan berikut!",
+ st:["Semakin tinggi konsentrasi sukrosa, semakin banyak sel yang mengalami plasmolisis karena semakin banyak air yang keluar dari sel.","Konsentrasi sukrosa yang isotonik dengan sel bawang mendekati 0,1 M karena pada konsentrasi tersebut belum ada sel yang mengalami plasmolisis.","Jenis bawang, lama perendaman, dan suhu perlu dibuat sama pada semua larutan agar perbedaan hasil hanya disebabkan oleh konsentrasi sukrosa."],
+ key:[true,false,true],
+ why:["Makin pekat larutan sukrosa, makin banyak air keluar dari sel sehingga plasmolisis meningkat (0 sampai 50 sel).","Kondisi isotonik ditandai sekitar separuh sel (sekitar 25 dari 50) mengalami plasmolisis, yaitu di sekitar 0,3 M. Pada 0,1 M tidak ada plasmolisis karena larutan masih hipotonik.","Variabel kontrol dijaga sama agar hanya konsentrasi sukrosa (variabel bebas) yang memengaruhi plasmolisis (variabel terikat)."]},
+{n:19,t:"bs",topik:"Endositosis dan eksositosis",lv:"Penalaran",
+ stem:"<p>Rina (16 tahun) memiliki kadar kolesterol LDL 380 mg/dL (kadar yang diinginkan kurang dari 100 mg/dL). Ayahnya meninggal akibat serangan jantung pada usia 40 tahun. Dokter mendiagnosis Rina menderita hiperkolesterolemia familial akibat mutasi pada gen yang menyandi reseptor LDL di membran sel hati.</p>",
+ ask:"Tentukan Benar atau Salah pada pernyataan berikut!",
+ st:["Pada sel hati yang normal, LDL masuk melalui endositosis yang diperantarai reseptor LDL pada membran plasma.","Kerusakan reseptor LDL membuat sel hati menyerap LDL lebih cepat sehingga kadar LDL darah menurun.","LDL dapat melintasi lapisan fosfolipid secara difusi sederhana sehingga tidak memerlukan reseptor."],
+ key:[true,false,false],
+ why:["LDL berukuran besar sehingga masuk lewat endositosis yang diperantarai reseptor LDL.","Reseptor yang rusak membuat LDL tidak dapat diserap sel hati. LDL menumpuk di darah dan kadarnya naik.","LDL besar dan memerlukan reseptor. Difusi sederhana hanya untuk zat kecil nonpolar."]},
+{n:20,t:"bs",topik:"Endositosis dan eksositosis",lv:"Penalaran",
+ stem:"<p>Satu keluarga mengonsumsi makanan kaleng buatan rumah yang kemasannya menggembung. Keesokan harinya mereka mengalami penglihatan ganda, kelopak mata turun, sulit menelan, dan otot lemas. Dokter mendiagnosis botulisme akibat toksin <i>Clostridium botulinum</i>. Toksin ini memotong protein SNARE pada ujung saraf motorik sehingga vesikel berisi asetilkolin tidak dapat menyatu dengan membran plasma.</p>",
+ ask:"Tentukan Benar atau Salah pada pernyataan berikut!",
+ st:["Asetilkolin dilepas dari ujung saraf motorik dengan melewati lapisan fosfolipid secara difusi sederhana.","Toksin meningkatkan eksositosis asetilkolin sehingga otot berkontraksi terus-menerus.","Toksin botulinum dosis kecil yang disuntikkan secara terukur untuk terapi medis bekerja dengan menghambat pelepasan neurotransmiter ke otot tertentu."],
+ key:[false,false,true],
+ why:["Asetilkolin dilepas melalui eksositosis: vesikel menyatu dengan membran plasma ujung saraf.","Toksin menghambat eksositosis sehingga otot lemas, bukan kejang.","Dosis kecil yang terukur dipakai untuk terapi dengan melemahkan otot tertentu, karena pelepasan asetilkolin dihambat."]}
+];
+
+var SEC = [
+ {id:"A",from:1,to:10,title:"Bagian A. Pilihan ganda",sub:"Pilih satu jawaban yang paling tepat."},
+ {id:"B",from:11,to:15,title:"Bagian B. Pilihan ganda kompleks",sub:"Pilih semua jawaban yang benar. Jawaban benar lebih dari satu."},
+ {id:"C",from:16,to:20,title:"Bagian C. Benar–salah berbasis kasus",sub:"Tentukan setiap pernyataan Benar atau Salah."}
+];
+var MAXSCORE = 35;
+
+var app = document.getElementById("app");
+var student = {nama:"",kelas:""};
+var ans = {};
+var BAND = '<svg class="band" viewBox="0 0 600 56" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">'
+ +'<defs><pattern id="pl" width="22" height="56" patternUnits="userSpaceOnUse">'
+ +'<circle cx="11" cy="9" r="5" style="fill:var(--accent)"/><path d="M9 14V27M13 14V27" style="stroke:var(--accent);fill:none" stroke-width="1.6" stroke-linecap="round"/>'
+ +'<circle cx="11" cy="47" r="5" style="fill:var(--accent)"/><path d="M9 42V29M13 42V29" style="stroke:var(--accent);fill:none" stroke-width="1.6" stroke-linecap="round"/>'
+ +'</pattern></defs><rect width="600" height="56" style="fill:var(--accent-soft)"/><rect width="600" height="56" fill="url(#pl)" opacity=".9"/></svg>';
+
+function el(html){var d=document.createElement("div");d.innerHTML=html.trim();return d.firstChild;}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function show(node){app.innerHTML="";app.appendChild(node);window.scrollTo(0,0);}
+
+/* ---------- layar 1: identitas ---------- */
+function startScreen(){
+  var n=el('<div class="card"><div>'+BAND+'</div><div class="pad stack">'
+   +'<div class="stack" style="gap:8px"><span class="eyebrow">Biologi · Kelas XI · Fase F</span>'
+   +'<h1>Ulangan Harian: Transpor pada Membran Sel</h1>'
+   +'<p class="muted">TP 3. Menerapkan prinsip-prinsip proses transpor pada membran sel dalam kehidupan sehari-hari.</p></div>'
+   +'<div class="parts"><div><b>Bagian A</b>10 soal pilihan ganda</div><div><b>Bagian B</b>5 soal pilihan ganda kompleks</div><div><b>Bagian C</b>5 kasus benar–salah</div></div>'
+   +'<form id="f" class="stack" novalidate>'
+   +'<label class="field" for="nama">Nama lengkap<input type="text" id="nama" autocomplete="name" maxlength="60" placeholder="Contoh: Adelia Putri"></label>'
+   +'<label class="field" for="kelas">Kelas<input type="text" id="kelas" maxlength="20" placeholder="Contoh: XI-3"></label>'
+   +'<div class="err" id="err" role="alert"></div>'
+   +'<button class="primary" type="submit">Mulai mengerjakan</button></form>'
+   +'<ul class="rules muted"><li>Soal terdiri atas 20 nomor. Waktu yang disarankan 60 menit.</li><li>Baca setiap kasus, tabel, atau data dengan cermat.</li><li>Nilai dan umpan balik muncul setelah kamu mengirim jawaban. Pembahasan dibuka sesudahnya.</li></ul>'
+   +'</div></div>');
+  show(n);
+  var f=n.querySelector("#f");
+  f.addEventListener("submit",function(e){
+    e.preventDefault();
+    var nm=f.nama.value.trim(), kl=f.kelas.value.trim();
+    if(!nm||!kl){n.querySelector("#err").textContent="Isi nama lengkap dan kelas terlebih dahulu.";(nm?f.kelas:f.nama).focus();return;}
+    student.nama=nm;student.kelas=kl;ans={};quizScreen();
+  });
+}
+
+/* ---------- komponen soal ---------- */
+function tableHTML(t){
+  return '<div class="tw"><table><thead><tr>'+t.head.map(function(h){return '<th>'+h+'</th>';}).join("")+'</tr></thead><tbody>'
+   +t.rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+c+'</td>';}).join("")+'</tr>';}).join("")+'</tbody></table></div>';
+}
+function head(q){
+  return '<div class="qhead"><span class="num">'+q.n+'</span><span class="chip">'+q.topik+'</span><span class="chip">'+q.lv+'</span></div>'
+   +'<div class="stem">'+q.stem+'</div>'+(q.tbl?tableHTML(q.tbl):"")+(q.stem2?'<div class="stem">'+q.stem2+'</div>':"")
+   +'<p class="ask">'+q.ask+'</p>'+(q.t==="pgk"?'<p class="hint">Pilih semua jawaban yang benar.</p>':"");
+}
+function quizQ(q){
+  var h='<section class="card q" id="q'+q.n+'" aria-label="Soal '+q.n+'">'+head(q);
+  if(q.t==="pg"||q.t==="pgk"){
+    var type=q.t==="pg"?"radio":"checkbox";
+    h+='<div class="opts">'+q.opts.map(function(o,i){
+      return '<label class="opt"><input type="'+type+'" name="q'+q.n+'" value="'+i+'"><span class="ltr">'+L[i]+'</span><span class="tx">'+o+'</span></label>';
+    }).join("")+'</div>';
+  }else{
+    h+='<div class="tw"><table class="cs"><thead><tr><th>Pernyataan</th><th class="c">Benar</th><th class="c">Salah</th></tr></thead><tbody>'
+     +q.st.map(function(s,i){
+       return '<tr><td>'+s+'</td><td class="c"><input type="radio" name="q'+q.n+'_'+i+'" value="t" aria-label="Benar, pernyataan '+(i+1)+'"></td><td class="c"><input type="radio" name="q'+q.n+'_'+i+'" value="f" aria-label="Salah, pernyataan '+(i+1)+'"></td></tr>';
+     }).join("")+'</tbody></table></div>';
+  }
+  return el(h+'</section>');
+}
+
+/* ---------- layar 2: soal ---------- */
+function isDone(q){
+  var a=ans[q.n];
+  if(q.t==="pg")return typeof a==="number";
+  if(q.t==="pgk")return Array.isArray(a)&&a.length>0;
+  return Array.isArray(a)&&a.length===3&&a.every(function(x){return x===true||x===false;});
+}
+function doneCount(){return Q.filter(isDone).length;}
+function quizScreen(){
+  var root=el('<div class="stack"></div>');
+  root.appendChild(el('<div class="bar"><div class="meta"><span>'+esc(student.nama)+' · '+esc(student.kelas)+'</span><span id="cnt">0 dari 20 terjawab</span></div><div class="track"><div class="fill" id="fl"></div></div></div>'));
+  SEC.forEach(function(s){
+    root.appendChild(el('<div class="sec"><h2>'+s.title+'</h2><p class="muted">'+s.sub+'</p></div>'));
+    Q.filter(function(q){return q.n>=s.from&&q.n<=s.to;}).forEach(function(q){root.appendChild(quizQ(q));});
+  });
+  var tail=el('<div class="stack" id="tail"><button class="primary" id="send" type="button">Kirim jawaban</button></div>');
+  root.appendChild(tail);
+  show(root);
+  function upd(){var c=doneCount();root.querySelector("#cnt").textContent=c+" dari 20 terjawab";root.querySelector("#fl").style.width=(c/20*100)+"%";}
+  root.addEventListener("change",function(e){
+    var t=e.target;if(!t.name)return;
+    var m=/^q(\d+)(?:_(\d))?$/.exec(t.name);if(!m)return;
+    var n=+m[1],q=Q[n-1];
+    if(q.t==="pg")ans[n]=+t.value;
+    else if(q.t==="pgk"){ans[n]=Array.prototype.map.call(root.querySelectorAll('input[name="q'+n+'"]:checked'),function(i){return +i.value;});}
+    else{var a=ans[n]||[null,null,null];a=a.slice();a[+m[2]]=(t.value==="t");ans[n]=a;}
+    upd();
+  });
+  root.querySelector("#send").addEventListener("click",function(){
+    var miss=Q.filter(function(q){return !isDone(q);}).map(function(q){return q.n;});
+    if(miss.length===0){resultScreen();return;}
+    var old=root.querySelector("#warn");if(old)old.remove();
+    var w=el('<div class="warnbox" id="warn" role="alert"><p><b>Masih ada '+miss.length+' soal yang belum lengkap:</b> nomor '+miss.join(", ")+'.</p><div class="row"><button class="ghost" type="button" id="back">Periksa lagi</button><button class="primary" type="button" id="force">Kirim tetap</button></div></div>');
+    tail.appendChild(w);w.scrollIntoView({block:"center"});
+    w.querySelector("#back").addEventListener("click",function(){var first=document.getElementById("q"+miss[0]);w.remove();if(first)first.scrollIntoView({block:"start"});});
+    w.querySelector("#force").addEventListener("click",resultScreen);
+  });
+  upd();
+}
+
+/* ---------- penilaian ---------- */
+function gradeQ(q){
+  var a=ans[q.n],got=0,max=0,st="empty";
+  if(q.t==="pg"){max=1;got=(a===q.key)?1:0;st=typeof a!=="number"?"empty":(got?"full":"none");}
+  else if(q.t==="pgk"){
+    max=2;var sel=Array.isArray(a)?a:[];
+    if(!sel.length){st="empty";}
+    else{
+      var wrong=sel.some(function(i){return q.key.indexOf(i)<0;});
+      var ok=sel.filter(function(i){return q.key.indexOf(i)>=0;}).length;
+      if(wrong){got=0;st="none";}
+      else if(ok===q.key.length){got=2;st="full";}
+      else{got=1;st="part";}
+    }
+  }else{
+    max=3;var arr=Array.isArray(a)?a:[];
+    q.key.forEach(function(k,i){if(arr[i]===k)got++;});
+    st=!arr.some(function(x){return x===true||x===false;})?"empty":(got===3?"full":(got===0?"none":"part"));
+  }
+  return {got:got,max:max,st:st};
+}
+function gradeAll(){
+  var r={total:0,sec:{},topik:{},lv:{},per:{}};
+  Q.forEach(function(q){
+    var g=gradeQ(q);r.per[q.n]=g;r.total+=g.got;
+    var sid=q.n<=10?"A":(q.n<=15?"B":"C");
+    [["sec",sid],["topik",q.topik],["lv",q.lv]].forEach(function(p){
+      var o=r[p[0]];o[p[1]]=o[p[1]]||{got:0,max:0};o[p[1]].got+=g.got;o[p[1]].max+=g.max;
+    });
+  });
+  r.nilai=Math.round(r.total/MAXSCORE*100);
+  return r;
+}
+function pct(o){return o.max?Math.round(o.got/o.max*100):0;}
+
+/* ---------- layar 3: nilai ---------- */
+function resultScreen(){
+  var r=gradeAll(),nm=esc(student.nama),v=r.nilai;
+  var pred,cls,head;
+  if(v>=85){pred="Sangat baik";cls="full";head="Hebat, "+nm+"! Kamu sudah memahami prinsip transpor membran dengan sangat baik.";}
+  else if(v>=75){pred="Baik";cls="full";head="Bagus, "+nm+". Pemahamanmu sudah baik, tinggal merapikan beberapa konsep.";}
+  else if(v>=60){pred="Cukup";cls="part";head="Cukup baik, "+nm+". Konsep dasarnya sudah ada, tetapi masih perlu diperkuat.";}
+  else{pred="Perlu belajar lagi";cls="none";head=nm+", jangan menyerah. Pelajari kembali materi transpor membran dengan bantuan pembahasan.";}
+  var strong=[],weak=[];
+  Object.keys(r.topik).forEach(function(k){var p=pct(r.topik[k]);if(p>=75)strong.push(k);else if(p<60)weak.push(k);});
+  var fb='<p>'+head+'</p><ul>';
+  if(strong.length)fb+='<li><b>Sudah kuat:</b> '+strong.join(", ")+'.</li>';
+  weak.forEach(function(k){fb+='<li><b>Perlu diperkuat, '+k+':</b> '+TOPIK_TIP[k]+'</li>';});
+  if(!weak.length&&!strong.length)fb+='<li>Hasilmu bervariasi antartopik. Buka pembahasan dan tandai soal yang masih ragu.</li>';
+  if(pct(r.lv["Penalaran"])+20<pct(r.lv["Pemahaman"]))fb+='<li><b>Soal penalaran:</b> soal berbasis data dan kasus masih sulit. Biasakan membaca tabel lebih dulu, lalu tentukan arah perpindahan zat sebelum memilih jawaban.</li>';
+  var empties=Q.filter(function(q){return r.per[q.n].st==="empty";}).length;
+  if(empties)fb+='<li>Ada '+empties+' soal yang tidak dijawab. Lain kali usahakan semua nomor terisi.</li>';
+  fb+='</ul>';
+  function bar(label,o,extra){var p=pct(o);return '<div class="br"><span>'+label+'</span><span>'+o.got+'/'+o.max+(extra||"")+'</span><div class="track"><div class="fill" style="width:'+p+'%"></div></div></div>';}
+  var secNames={A:"A. Pilihan ganda",B:"B. Pilihan ganda kompleks",C:"C. Benar–salah berbasis kasus"};
+  var nBenar=0,nSebagian=0,nSalah=0;
+  Q.forEach(function(q){var s=r.per[q.n].st;if(s==="full")nBenar++;else if(s==="part")nSebagian++;else nSalah++;});
+  var node=el('<div class="stack">'
+   +'<div class="card"><div>'+BAND+'</div><div class="pad stack">'
+   +'<span class="eyebrow">Hasil ulangan</span>'
+   +'<div class="who"><b>'+esc(student.nama)+'</b> · Kelas '+esc(student.kelas)+'</div>'
+   +'<div class="score"><span class="big">'+v+'</span><span class="muted">dari 100</span><span class="grade pill '+cls+'">'+pred+'</span></div>'
+   +'<p class="muted">Skor '+r.total+' dari '+MAXSCORE+'. '+(v>=KKM?'Nilaimu mencapai batas ketuntasan ('+KKM+').':'Nilaimu belum mencapai batas ketuntasan ('+KKM+').')+'</p>'
+   +'<div class="sumgrid"><div><b>'+nBenar+'</b>soal benar penuh</div><div><b>'+nSebagian+'</b>soal benar sebagian</div><div><b>'+nSalah+'</b>soal salah atau kosong</div></div>'
+   +'</div></div>'
+   +'<div class="card pad fb stack" style="gap:6px"><h2>Umpan balik</h2>'+fb+'</div>'
+   +'<div class="card pad stack"><h2>Skor per bagian</h2><div class="bars">'+["A","B","C"].map(function(k){return bar(secNames[k],r.sec[k]);}).join("")+'</div></div>'
+   +'<div class="card pad stack"><h2>Penguasaan per topik</h2><div class="bars">'+Object.keys(TOPIK_TIP).map(function(k){return bar(k,r.topik[k]," · "+pct(r.topik[k])+"%");}).join("")+'</div></div>'
+   +'<div class="card pad stack"><h2>Level kognitif</h2><div class="bars">'+["Pemahaman","Penerapan","Penalaran"].map(function(k){return bar(k,r.lv[k]," · "+pct(r.lv[k])+"%");}).join("")+'</div></div>'
+   +'<div class="row"><button class="primary" id="rev" type="button">Lihat pembahasan</button><button class="ghost" id="cp" type="button">Salin ringkasan hasil</button></div>'
+   +'<div class="toast" id="ts" role="status"></div>'
+   +'</div>');
+  show(node);
+  node.querySelector("#rev").addEventListener("click",function(){reviewScreen(r);});
+  node.querySelector("#cp").addEventListener("click",function(){
+    var txt="Ulangan Transpor Membran Sel\nNama: "+student.nama+"\nKelas: "+student.kelas+"\nNilai: "+v+" (skor "+r.total+"/"+MAXSCORE+")\nBagian A: "+r.sec.A.got+"/"+r.sec.A.max+" | Bagian B: "+r.sec.B.got+"/"+r.sec.B.max+" | Bagian C: "+r.sec.C.got+"/"+r.sec.C.max;
+    var ts=node.querySelector("#ts");
+    function fallback(){var ta=document.createElement("textarea");ta.value=txt;ta.style.cssText="width:100%;min-height:110px;font:inherit;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)";ts.textContent="Salin teks berikut secara manual:";ts.style.color="var(--muted)";ts.appendChild(document.createElement("br"));ts.appendChild(ta);ta.focus();ta.select();}
+    try{navigator.clipboard.writeText(txt).then(function(){ts.textContent="Ringkasan hasil tersalin.";},fallback);}catch(e){fallback();}
+  });
+}
+
+/* ---------- layar 4: pembahasan ---------- */
+function statusPill(st,got,max){
+  var m={full:["full","Benar"],part:["part","Sebagian benar"],none:["none","Salah"],empty:["none","Tidak dijawab"]}[st];
+  return '<span class="pill '+m[0]+'">'+m[1]+' · '+got+'/'+max+'</span>';
+}
+function reviewQ(q,g){
+  var a=ans[q.n],h='<section class="card q" id="r'+q.n+'">'+head(q);
+  h=h.replace('<div class="qhead">','<div class="qhead">');
+  var body='';
+  if(q.t==="pg"||q.t==="pgk"){
+    var keys=q.t==="pg"?[q.key]:q.key, sel=q.t==="pg"?(typeof a==="number"?[a]:[]):(a||[]);
+    body+='<div class="opts">'+q.opts.map(function(o,i){
+      var isKey=keys.indexOf(i)>=0,chosen=sel.indexOf(i)>=0,c="";
+      if(isKey)c=" correct";else if(chosen)c=" wrong";
+      var tags="";
+      if(isKey)tags+='<span class="tag ok">Kunci</span>';
+      if(chosen)tags+='<span class="tag '+(isKey?'ok':'bad')+'">Jawabanmu</span>';
+      return '<div class="opt static'+c+'"><span class="ltr">'+L[i]+'</span><span class="tx">'+o+'</span><span style="display:flex;flex-direction:column;gap:4px">'+tags+'</span></div>';
+    }).join("")+'</div>';
+    body+='<div class="expl"><b>Pembahasan</b>'+q.ex+'</div>';
+  }else{
+    var arr=Array.isArray(a)?a:[];
+    function lab(x){return x===true?"Benar":(x===false?"Salah":"Kosong");}
+    body+='<div class="tw"><table><thead><tr><th>Pernyataan</th><th class="c">Jawabanmu</th><th class="c">Kunci</th></tr></thead><tbody>'
+     +q.st.map(function(s,i){
+       var ok=arr[i]===q.key[i];
+       return '<tr><td>'+s+'</td><td class="c"><span class="pill '+(ok?'full':'none')+'">'+lab(arr[i])+'</span></td><td class="c"><b>'+lab(q.key[i])+'</b></td></tr>';
+     }).join("")+'</tbody></table></div>';
+    body+='<div class="expl"><b>Pembahasan</b><ul>'+q.why.map(function(w,i){return '<li><b style="display:inline;font-size:inherit;letter-spacing:0;text-transform:none;color:inherit">Pernyataan '+(i+1)+' ('+lab(q.key[i])+'):</b> '+w+'</li>';}).join("")+'</ul></div>';
+  }
+  return el(h+body+'<div>'+statusPill(g.st,g.got,g.max)+'</div></section>');
+}
+function reviewScreen(r){
+  var root=el('<div class="stack"></div>');
+  root.appendChild(el('<div class="stack" style="gap:6px"><span class="eyebrow">Pembahasan</span><h1>Pembahasan soal</h1><p class="muted">'+esc(student.nama)+' · Kelas '+esc(student.kelas)+' · Nilai '+r.nilai+'. Kunci ditandai hijau dan jawaban yang kamu pilih diberi label.</p></div>'));
+  var nav=el('<div class="row"><button class="ghost" id="b1" type="button">Kembali ke nilai</button></div>');
+  root.appendChild(nav);
+  SEC.forEach(function(s){
+    root.appendChild(el('<div class="sec"><h2>'+s.title+'</h2></div>'));
+    Q.filter(function(q){return q.n>=s.from&&q.n<=s.to;}).forEach(function(q){root.appendChild(reviewQ(q,r.per[q.n]));});
+  });
+  root.appendChild(el('<div class="row"><button class="ghost" id="b2" type="button">Kembali ke nilai</button><button class="primary" id="b3" type="button">Kerjakan ulang dari awal</button></div>'));
+  show(root);
+  root.querySelector("#b1").addEventListener("click",resultScreen);
+  root.querySelector("#b2").addEventListener("click",resultScreen);
+  root.querySelector("#b3").addEventListener("click",function(){ans={};startScreen();});
+}
+
+startScreen();
+})();
+</script>
+
+</body></html>
